@@ -13,6 +13,7 @@ const mbankLogs = "https://sw-rrev-pl.mbank.pl/";
 const dlaCdParam = "dla_cd/";
 
 let filesUrl = mbankLogs + dlaCdParam;
+let filename;
 
 const sleep = (ms = 1000) => new Promise((r) => setTimeout(r, ms));
 
@@ -64,28 +65,31 @@ async function getFiles() {
         choices: files
     });
 
-    filesUrl += environment.file;
+    if (environment.file.slice(-1) === '/') {
+        filesUrl += environment.file;
+        return;
+    }
+    filename = environment.file;
 }
 
 async function downloadFile() {
     const spinner = createSpinner('Downloading file...').start();
-    const response = await fetch(filesUrl);
-    let splittedUrl = filesUrl.split("/");
-    const fileStream = fs.createWriteStream("./logs/" + splittedUrl[splittedUrl.length - 1]);
+    const response = await fetch(filesUrl + filename);
+    const fileStream = fs.createWriteStream("./logs/" + filename);
     await new Promise((resolve, reject) => {
         response.body.pipe(fileStream);
         response.body.on("error", reject);
         fileStream.on("finish", resolve);
     });
     spinner.success({text: "File downloaded..."});
+    filename = null;
 }
 
 await start();
 while (true) {
-    if (filesUrl.slice(-1) === '/') {
-        await getFiles();
+    if (filename) {
+        await downloadFile();
         continue;
     }
-    await downloadFile();
-    process.exit(0);
+    await getFiles();
 }
