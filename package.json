@@ -1,0 +1,18 @@
+{
+  "name": "file-downloader",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "author": "drolewski",
+  "license": "MIT",
+  "scripts": {
+    "start": "node . NODE_TLS_REJECT_UNAUTHORIZED=0"
+  },
+  "dependencies": {
+    "chalk-animation": "^1.6.0",
+    "fs": "^0.0.1-security",
+    "inquirer": "^8.2.2",
+    "nanospinner": "^1.0.0",
+    "node-fetch": "^3.2.3"
+  }
+}
