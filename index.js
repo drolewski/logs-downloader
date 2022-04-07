@@ -4,20 +4,20 @@ import inquirer from "inquirer";
 import chalkAnimation from "chalk-animation";
 import {createSpinner} from "nanospinner";
 import fetch from "node-fetch";
-import fs from "fs"
+import fs from "fs";
 
 
-process.env["NODE_TLS_REJECT_UNAUTHORIZED"]=0
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0
 
 const mbankLogs = "https://sw-rrev-pl.mbank.pl/";
 const dlaCdParam = "dla_cd/";
 
-var filesUrl = mbankLogs + dlaCdParam;
+let filesUrl = mbankLogs + dlaCdParam;
 
 const sleep = (ms = 1000) => new Promise((r) => setTimeout(r, ms));
 
 async function start() {
-    const rainbowTitle = chalkAnimation.rainbow (
+    chalkAnimation.rainbow(
         'Mbank Logs Downloader \n'
     );
     await sleep();
@@ -25,28 +25,28 @@ async function start() {
 
 async function handleAnswer(url) {
     const spinner = createSpinner('Downloading directory...').start();
-    var html;
-    var responseStatus;
+    let html;
+    let responseStatus;
     await fetch(url)
         .then(response => {
             responseStatus = response.status;
             return response.text();
         })
         .then(text => html = text);
-    
-    if(responseStatus == 200) {
+
+    if (responseStatus === 200) {
         spinner.success({text: "Directory downloaded..."});
         return html;
-    } 
+    }
     spinner.error({text: "Error while downloading directory... "});
     process.exit(1);
 }
 
 async function getPage(url) {
     const html = await handleAnswer(url);
-    const matchedFiles = html.match(/(href=\".*\/\"|href=\".*(log|out|txt|zip|gz))/g);
-    const urls = matchedFiles.map(href => href.match(/href=\"(.*)\"/)[1]);
-    if (filesUrl !== mbankLogs + dlaCdParam){
+    const matchedFiles = html.match(/(href=".*\/"|href=".*(log|out|txt|zip|gz))/g);
+    const urls = matchedFiles.map(href => href.match(/href="(.*)"/)[1]);
+    if (filesUrl !== mbankLogs + dlaCdParam) {
         urls[0] = "../";
     } else {
         urls.shift();
@@ -55,7 +55,7 @@ async function getPage(url) {
 }
 
 async function getFiles() {
-    var files = await getPage(filesUrl);
+    let files = await getPage(filesUrl);
 
     const environment = await inquirer.prompt({
         name: 'file',
@@ -70,7 +70,7 @@ async function getFiles() {
 async function downloadFile() {
     const spinner = createSpinner('Downloading file...').start();
     const response = await fetch(filesUrl);
-    var splittedUrl = filesUrl.split("/");
+    let splittedUrl = filesUrl.split("/");
     const fileStream = fs.createWriteStream("./logs/" + splittedUrl[splittedUrl.length - 1]);
     await new Promise((resolve, reject) => {
         response.body.pipe(fileStream);
@@ -81,11 +81,11 @@ async function downloadFile() {
 }
 
 await start();
-while(true) {
-    if (filesUrl.slice(-1) === '/'){
+while (true) {
+    if (filesUrl.slice(-1) === '/') {
         await getFiles();
-    } else {
-        await downloadFile();
-        process.exit(0);
+        continue;
     }
+    await downloadFile();
+    process.exit(0);
 }
